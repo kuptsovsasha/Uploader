@@ -1,0 +1,6 @@
+name: uploader
+services:
+- name: web
+  github:
+    repo: kuptsovsasha/Uploader
+    branch: master
