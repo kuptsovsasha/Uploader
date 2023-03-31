@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>File Upload Success</title>
+	<style>
+        .nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding: 10px;
+        }
+        .nav a {
+            display: inline-block;
+            color: #fff;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+        .nav a:hover {
+            background-color: #555;
+        }
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f2f2f2;
+			margin: 0;
+			padding: 0;
+		}
+		h1, h2 {
+			color: #333;
+			text-align: center;
+			margin-top: 50px;
+		}
+		a {
+			display: block;
+			text-align: center;
+			color: #fff;
+			background-color: #333;
+			padding: 10px;
+			border-radius: 5px;
+			margin-top: 20px;
+			font-size: 16px;
+			text-decoration: none;
+			transition: background-color 0.2s ease;
+		}
+		a:hover {
+			background-color: #555;
+		}
+	</style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/">Home</a>
+    </div>
+	<h1>File Upload Success</h1>
+	<h2>The file {{ filename }} was uploaded successfully.</h2>
+	<h2>It took {{ time_spent }} seconds to upload the file.</h2>
+	<a href="{{ download_link }}">Download File</a>
+</body>
+</html>

@@ -24,13 +24,8 @@ def upload():
     time_spent = end_time - start_time
 
     download_link = f'http://206.189.83.222:5000/download_file/{current_time}/{filename}'
-    return f'''
-    <!doctype html>
-    <h1>The file {filename} was uploaded successfully.</h1>
-    <h2>It took {time_spent} seconds to upload the file.</h2>
-    <h2>You can download the file with link below:</h2>
-    <a href="{download_link}">{download_link}</a>
-    '''
+    return render_template('upload_success.html',
+                           filename=filename, time_spent=time_spent, download_link=download_link)
 
 
 @app.route('/download_file/<path:file_path>')
