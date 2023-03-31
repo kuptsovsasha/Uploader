@@ -3,6 +3,7 @@ import time
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+app_root = os.path.dirname(os.path.abspath(__file__))
 
 
 @app.route('/')
@@ -23,7 +24,7 @@ def upload():
     end_time = time.time()
     time_spent = end_time - start_time
 
-    download_link = f'http://206.189.83.222/{folder_name}/{filename}'
+    download_link = f'http://206.189.83.222/{os.path.join(app_root, folder_name, filename)}'
     return f'''
     <!doctype html>
     <h1>The file {filename} was uploaded successfully.</h1>
