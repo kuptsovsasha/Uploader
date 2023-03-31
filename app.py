@@ -21,9 +21,9 @@ def upload():
 
     file.save(os.path.join(folder_name, filename))
     end_time = time.time()
-    time_spent = end_time - start_time
+    time_spent = round(end_time - start_time, 3)
 
-    download_link = f'http://206.189.83.222:5000/download_file/{current_time}/{filename}'
+    download_link = f'http://206.189.83.222/:5000/download_file/{current_time}/{filename}'
     return render_template('upload_success.html',
                            filename=filename, time_spent=time_spent, download_link=download_link)
 
