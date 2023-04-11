@@ -1,7 +1,11 @@
 import os
+import subprocess
 import time
+import requests
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, send_file
 
+load_dotenv()
 app = Flask(__name__)
 
 
@@ -13,19 +17,24 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     start_time = time.time()
-    file = request.files['file']
+    link = request.form['link']
+    host = os.environ.get('SINGAPORE_IP')
+    file_name = os.path.basename(link)
     current_time = time.strftime('%Y-%m-%d_%H:%M:%S')
-    folder_name = os.path.join('uploads', current_time)
-    os.makedirs(folder_name) # create a new folder based on the current time
-    filename = file.filename
+    remote_folder = "/root/files/" + current_time
+    create_folder_command = f"mkdir -p {remote_folder}"
+    subprocess.run(f"ssh root@{host} '{create_folder_command}'", shell=True)
+    file_path = os.path.join(remote_folder, file_name)
 
-    file.save(os.path.join(folder_name, filename))
+    with requests.get(link, stream=True) as r:
+        r.raise_for_status()
+        with subprocess.Popen(f"ssh root@{host} 'cat > {file_path}'", shell=True, stdin=subprocess.PIPE) as p:
+            for chunk in r.iter_content(chunk_size=8192):
+                p.stdin.write(chunk)
     end_time = time.time()
     time_spent = round(end_time - start_time, 3)
-
-    download_link = f'http://206.189.83.222/:5000/download_file/{current_time}/{filename}'
     return render_template('upload_success.html',
-                           filename=filename, time_spent=time_spent, download_link=download_link)
+                           filename=file_name, time_spent=time_spent, download_link="")
 
 
 @app.route('/download_file/<path:file_path>')
@@ -40,4 +49,4 @@ def download_file(file_path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='localhost')

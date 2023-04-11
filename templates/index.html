@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>File Upload</title>
+	<title>Link Upload</title>
 	<style>
 		body {
 			font-family: Arial, sans-serif;
@@ -20,7 +20,7 @@
 			align-items: center;
 			margin-top: 50px;
 		}
-		input[type="file"] {
+		input[type="text"] {
 			padding: 10px;
 			margin-bottom: 20px;
 			border: none;
@@ -29,11 +29,7 @@
 			background-color: #fff;
 			color: #333;
 			font-size: 16px;
-			cursor: pointer;
 			transition: background-color 0.2s ease;
-		}
-		input[type="file"]:hover {
-			background-color: #eee;
 		}
 		input[type="submit"] {
 			padding: 10px;
@@ -51,9 +47,9 @@
 	</style>
 </head>
 <body>
-	<h1>File Upload</h1>
-	<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-		<input type="file" name="file">
+	<h1>Link Upload</h1>
+	<form action="{{ url_for('upload') }}" method="post">
+		<input type="text" name="link" placeholder="Enter your link here">
 		<input type="submit" value="Upload">
 	</form>
 </body>

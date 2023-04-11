@@ -44,7 +44,7 @@
             font-size: 16px;
             text-decoration: none;
             transition: background-color 0.2s ease;
-            width: 30%;
+            width: 100%;
         }
 		a:hover {
 			background-color: #555;
@@ -59,6 +59,6 @@
 	<h2>The file {{ filename }} was uploaded successfully.</h2>
 	<h2>It took {{ time_spent }} seconds to upload the file.</h2>
     <h4>{{ download_link }}</h4>
-	<a href="{{ download_link }}">Download File</a>
+	<a href="{{ download_link }}" style="width: 30%">Download File</a>
 </body>
 </html>

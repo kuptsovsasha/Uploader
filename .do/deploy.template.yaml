@@ -1,7 +1,0 @@
-spec:
-  name: uploader
-  services:
-  - name: web
-    git:
-      branch: master
-      repo_clone_url: https://github.com/kuptsovsasha/Uploader.git
