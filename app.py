@@ -22,12 +22,12 @@ def index():
 def download_success():
     download_time_ms = request.args.get('download_time')
     download_time_sec = round(int(download_time_ms) / 1000, 2)
-    file_location = LocationResolver().get_droplet_location(request)
+    droplet_location, droplet_ip = LocationResolver().get_droplet_location(request)
 
     return render_template('download_success.html',
                            download_time=download_time_sec,
-                           file_ip=file_location[1],
-                           file_vps=file_location[0],
+                           file_ip=droplet_ip,
+                           file_vps=droplet_location,
                            current_time=time.strftime('%Y-%m-%d %H:%M:%S'))
 
 
