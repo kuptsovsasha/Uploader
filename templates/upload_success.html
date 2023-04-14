@@ -33,7 +33,7 @@
 			text-align: center;
 			margin-top: 50px;
 		}
-		a {
+		a, button {
             display: block;
             text-align: center;
             color: #fff;
@@ -49,16 +49,71 @@
 		a:hover {
 			background-color: #555;
 		}
+		.loader {
+			border: 4px solid #f3f3f3;
+			border-radius: 50%;
+			border-top: 4px solid #3498db;
+			width: 20px;
+			height: 20px;
+			animation: spin 2s linear infinite;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
 	</style>
 </head>
 <body>
     <div class="nav">
         <a href="/">Home</a>
     </div>
-	<h1>File Upload Success</h1>
-	<h2>The file {{ filename }} was uploaded successfully.</h2>
-	<h2>It took {{ time_spent }} seconds to upload the file.</h2>
-    <h4>{{ download_link }}</h4>
-	<a href="{{ download_link }}" style="width: 30%">Download File</a>
+	<h1>File Upload Successfully</h1>
+	<h2>{{ upload_data["host_name"] }} {{ upload_data["host_ip"] }},
+		{{ upload_data["time_spent"] }} sec, {{ upload_data["time_when_upload"] }}, {{ download_url }}{{upload_data["file_path"]}}</h2>
+	{% if sync_data %}
+		<h1>File Sync Successfully</h1>
+		<h2>
+		{% for data in sync_data %}
+			{{ upload_data["vps_num"] }} -> {{ data["vps"] }} {{ data["droplet_ip"] }}, {{ data["time_to_sync"] }} sec,
+			{{ data["time_when_upload"] }}, {{ download_url }}{{upload_data["file_path"]}} <br>
+		{% endfor %}
+		</h2>
+	{% endif %}
+	<button style="width: 30%;" id="download-link">Download file</button>
 </body>
+<script>
+	const downloadBtn = document.querySelector('#download-link');
+
+	downloadBtn.addEventListener('click', (event) => {
+		event.preventDefault();
+		downloadBtn.innerHTML = '<div class="loader"></div>';
+		const startTime = new Date().getTime();
+
+		fetch("{{ download_url }}{{upload_data['file_path']}}")
+		  .then(response => {
+
+			downloadBtn.innerHTML = 'Download File';
+			if (response.ok) {
+			  return response.blob();
+			} else {
+
+			}
+		  })
+		   .then(blob => {
+			  const fileUrl = URL.createObjectURL(blob);
+			  const a = document.createElement('a');
+			  a.href = fileUrl;
+			  a.download = '{{upload_data["filename"]}}';
+			  a.click();
+			  URL.revokeObjectURL(fileUrl);
+			  const endTime = new Date().getTime();
+			  const downloadTime = endTime - startTime;
+			  window.location.href = `/download_success?download_time=${downloadTime}`;
+			})
+			.catch(error => {
+			  console.error('Error:', error);
+			});
+		});
+</script>
 </html>

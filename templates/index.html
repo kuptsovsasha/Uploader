@@ -22,6 +22,7 @@
 		}
 		input[type="text"] {
 			padding: 10px;
+			width: 30%;
 			margin-bottom: 20px;
 			border: none;
 			border-radius: 5px;
@@ -47,7 +48,7 @@
 	</style>
 </head>
 <body>
-	<h1>Link Upload</h1>
+	<h1>Upload your file</h1>
 	<form action="{{ url_for('upload') }}" method="post">
 		<input type="text" name="link" placeholder="Enter your link here">
 		<input type="submit" value="Upload">

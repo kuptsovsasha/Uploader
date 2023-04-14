@@ -1,9 +1,13 @@
 import os
 import subprocess
+import io
 import time
-import requests
+
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, Response, url_for
+
+from file_handler_processor import FileProcessor
+from location_resolver import LocationResolver
 
 load_dotenv()
 app = Flask(__name__)
@@ -14,38 +18,46 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/download_success')
+def download_success():
+    download_time_ms = request.args.get('download_time')
+    download_time_sec = round(int(download_time_ms) / 1000, 2)
+    file_location = LocationResolver().get_droplet_location(request)
+
+    return render_template('download_success.html',
+                           download_time=download_time_sec,
+                           file_ip=file_location[1],
+                           file_vps=file_location[0],
+                           current_time=time.strftime('%Y-%m-%d %H:%M:%S'))
+
+
 @app.route('/upload', methods=['POST'])
 def upload():
-    start_time = time.time()
     link = request.form['link']
-    host = os.environ.get('SINGAPORE_IP')
-    file_name = os.path.basename(link)
-    current_time = time.strftime('%Y-%m-%d_%H:%M:%S')
-    remote_folder = "/root/files/" + current_time
-    create_folder_command = f"mkdir -p {remote_folder}"
-    subprocess.run(f"ssh root@{host} '{create_folder_command}'", shell=True)
-    file_path = os.path.join(remote_folder, file_name)
 
-    with requests.get(link, stream=True) as r:
-        r.raise_for_status()
-        with subprocess.Popen(f"ssh root@{host} 'cat > {file_path}'", shell=True, stdin=subprocess.PIPE) as p:
-            for chunk in r.iter_content(chunk_size=8192):
-                p.stdin.write(chunk)
-    end_time = time.time()
-    time_spent = round(end_time - start_time, 3)
+    droplet_location, droplet_ip = LocationResolver().get_droplet_location(link)
+
+    file_handler_processor = FileProcessor()
+    upload_data = file_handler_processor.upload_file_by_link(link=link, droplet_ip=droplet_ip)
+    upload_data.update({"host_name": droplet_location,
+                        "vps_num": droplet_location.split(" ")[0]})
+
+    sync_data = file_handler_processor.sync_uploaded_file(droplet_ip=droplet_ip)
+
     return render_template('upload_success.html',
-                           filename=file_name, time_spent=time_spent, download_link="")
+                           upload_data=upload_data,
+                           sync_data=sync_data,
+                           download_url=os.environ.get("DOWNLOAD_URL"))
 
 
 @app.route('/download_file/<path:file_path>')
 def download_file(file_path):
-    print(file_path)
-    uploads_dir = os.path.join(os.getcwd(), 'uploads')
-    file_path = os.path.join(uploads_dir, file_path)
-    if os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        return f"The requested file '{file_path}' does not exist."
+    droplet_ip = LocationResolver().get_droplet_location(request)[1]
+    execution_command = FileProcessor().get_file_download_command(droplet_ip=droplet_ip, file_path=file_path)
+    file_name = os.path.basename(file_path)
+    with subprocess.Popen(execution_command, shell=True, stdout=subprocess.PIPE) as p:
+        buffer = io.BytesIO(p.stdout.read())
+    return send_file(buffer, as_attachment=True, download_name=file_name)
 
 
 if __name__ == '__main__':
