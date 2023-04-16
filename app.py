@@ -4,7 +4,7 @@ import io
 import time
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, send_file, Response, url_for
+from flask import Flask, render_template, request, send_file
 
 from file_handler_processor import FileProcessor
 from location_resolver import LocationResolver
@@ -61,4 +61,4 @@ def download_file(file_path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='localhost')
+    app.run(debug=True, host='0.0.0.0', port=8080)

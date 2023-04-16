@@ -93,7 +93,6 @@
 		fetch("{{ download_url }}{{upload_data['file_path']}}")
 		  .then(response => {
 
-			downloadBtn.innerHTML = 'Download File';
 			if (response.ok) {
 			  return response.blob();
 			} else {
@@ -107,6 +106,7 @@
 			  a.download = '{{upload_data["filename"]}}';
 			  a.click();
 			  URL.revokeObjectURL(fileUrl);
+			  downloadBtn.innerHTML = 'Download File';
 			  const endTime = new Date().getTime();
 			  const downloadTime = endTime - startTime;
 			  window.location.href = `/download_success?download_time=${downloadTime}`;
