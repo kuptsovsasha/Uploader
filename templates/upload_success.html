@@ -81,39 +81,84 @@
 		</h2>
 	{% endif %}
 	<button style="width: 30%;" id="download-link">Download file</button>
+	<div id="progress-container" style="display: none;">
+	  <div id="progress-bar" style="background-color: blue; width: 0%; height: 20px;"></div>
+	  <div id="speed-index">Speed: 0 KB/s</div>
+	</div>
+
 </body>
 <script>
-	const downloadBtn = document.querySelector('#download-link');
+  const downloadBtn = document.querySelector("#download-link");
+  const progressContainer = document.querySelector("#progress-container");
+  const progressBar = document.querySelector("#progress-bar");
+  const speedIndex = document.querySelector("#speed-index");
 
-	downloadBtn.addEventListener('click', (event) => {
-		event.preventDefault();
-		downloadBtn.innerHTML = '<div class="loader"></div>';
-		const startTime = new Date().getTime();
+  downloadBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    downloadBtn.style.display = "none";
+    progressContainer.style.display = "block";
 
-		fetch("{{ download_url }}{{upload_data['file_path']}}")
-		  .then(response => {
+    const startTime = new Date().getTime();
+    let receivedLength = 0;
 
-			if (response.ok) {
-			  return response.blob();
-			} else {
+    fetch("{{ download_url }}{{upload_data['file_path']}}")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Download failed");
+        }
 
-			}
-		  })
-		   .then(blob => {
-			  const fileUrl = URL.createObjectURL(blob);
-			  const a = document.createElement('a');
-			  a.href = fileUrl;
-			  a.download = '{{upload_data["filename"]}}';
-			  a.click();
-			  URL.revokeObjectURL(fileUrl);
-			  downloadBtn.innerHTML = 'Download File';
-			  const endTime = new Date().getTime();
-			  const downloadTime = endTime - startTime;
-			  window.location.href = `/download_success?download_time=${downloadTime}`;
-			})
-			.catch(error => {
-			  console.error('Error:', error);
-			});
-		});
+        const contentLength = response.headers.get("Content-Length");
+        const reader = response.body.getReader();
+        const stream = new ReadableStream({
+          start(controller) {
+            function push() {
+              reader.read().then(({ done, value }) => {
+                if (done) {
+                  controller.close();
+                  return;
+                }
+
+                receivedLength += value.length;
+                const percent = (receivedLength / contentLength) * 100;
+                progressBar.style.width = `${percent}%`;
+
+                const elapsedTime = (new Date().getTime() - startTime) / 1000;
+                const speed = (receivedLength / 1024) / elapsedTime;
+                speedIndex.textContent = `Speed: ${speed.toFixed(2)} KB/s`;
+
+                controller.enqueue(value);
+                push();
+              });
+            }
+
+            push();
+          },
+        });
+
+        return new Response(stream, { headers: response.headers });
+      })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const fileUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = fileUrl;
+        a.download = '{{upload_data["filename"]}}';
+        a.click();
+        URL.revokeObjectURL(fileUrl);
+
+        progressContainer.style.display = "none";
+        downloadBtn.style.display = "block";
+
+        const endTime = new Date().getTime();
+        const downloadTime = endTime - startTime;
+        window.location.href = `/download_success?download_time=${downloadTime}`;
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        progressContainer.style.display = "none";
+        downloadBtn.style.display = "block";
+      });
+  });
 </script>
+
 </html>
